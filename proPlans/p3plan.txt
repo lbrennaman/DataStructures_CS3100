@@ -1,0 +1,933 @@
+CS 3100 – Data Structures and Algorithms
+Project #3 – Hash Table Performance
+Learning Objectives
+• Implement a data structure to meet given specifications
+• Design, implement, and use a closed hash table data structure
+• Perform empirical analysis of algorithm performance
+• Compare theoretical and empirical performance of a data structure
+
+Overview
+
+Your task for this assignment is to implement a closed hash table data structure, and to analyze the time
+complexity of the insert operation for your hash as a function of the load factor, α, of your hash table.
+
+The HashTable class
+
+Your hash table should be implemented as an array of MAXHASH objects of class Record. A Record
+contains a non-negative integer key, and a value, which can be of any type. You will need to implement
+Record as a template class.
+
+The value of MAXHASH should initially be #defined as 1000 when you turn in your project, though you
+may need to use a smaller value during development and testing of your code in order to explore its
+behavior.
+
+To implement the hash table, you should create a template class called HashTable, implemented inline
+in the file HashTable.h. Your class should support the following operations (for any type T):
+
+bool insert(int key, T value, int& collisions)
+– Create a new Record object for this key/value pair and
+insert it into the table, if possible. Duplicate keys are not allowed. This function should return true if the
+key/value pair is successfully inserted into the hash table, and false if the pair could not be inserted (for
+example, due to a duplicate key already found in the table or because there is no more room). If the
+insertion is successful, the value of the parameter collisions should be increased by the number of
+collisions that occurred during the insert operation.
+
+bool remove(int key, T& value)
+– If there is a record with the given key in the hash table, the parameter
+value is set to that record’s value, the record is removed from the hash table, and the function returns
+true; otherwise the function returns false and the parameter value has no meaning.
+
+bool find(int key, T& value) – If a record with the given key is found in the hash table, the function
+returns true and a copy of the value is returned in value; otherwise the function returns false and the
+parameter value has no meaning.
+
+float alpha()
+- Returns the current loading factor, α, of the hash table.
+
+Your hash table should also overload operator<< such that cout << myHashTable prints all the key/value
+pairs in the table, along with their hash table slot, to cout. If a particular slot of the hash table is empty,
+it should not be included in the output. In order to avoid difficulties that occur when combining
+templates with separate .h and .cpp files, you may include your operator<< function definition in your
+HashTable.h file.
+
+Keep in mind that some supplementary methods will also likely be needed. For example, you will need
+appropriate constructors in both your HashTable and Record classes, and getter/setter methods in your
+Record class.
+
+You can do basic testing of your hash table using the test.cpp file provided.
+
+The hash and probe functions
+
+For this project, you will need to implement two hash functions and two probe functions. One hash
+function should just be the key modulo MAXHASH. Likewise, one probe function should be linear
+probing.
+
+For the other hash function, you are free to implement anything you like. For example, you may choose
+to implement some form of the ELFhash, given in Chapter 9 of your textbook, or any other hash function
+that will work on integer keys. Remember to cite your source if you use code written by anyone other
+than yourself! Also, keep in mind that you should not submit any code that you do not understand – I
+reserve the right to ask you to explain how your hash function works before giving you a grade.
+For the second probe function, you may use double-hashing (a.k.a. random rehash) or pseudo-random
+probing to resolve collisions. If you use double-hashing, take care to ensure that your probe function will
+attempt to use every slot in the hash table (e.g. that your stride is coprime with the size of your hash
+table).
+
+Analysis of your hash
+You will need to analyze your hash for performance for both sequential keys and for random keys. First,
+design a test harness to insert sequential integer keys into your hash. For each combination of hash and
+probe function, examine the hashed locations to determine if your approach is distributing the keys well
+among the hash table slots. Next, you should test your hash table using a driver that inserts records with
+random keys into the hash table. Again, determine how well your hash function is distributing the values
+among hash table slots.
+
+Next you should test the number of probes for insertions as the table becomes more and more full.
+Based on your test results, you should provide a plot of the average number of probes for inserts as a
+function of alpha. (This means you will need to do multiple inserts/removes in order to determine the
+mean value. You should describe your methods for determining this value in your report.) Your plot
+should compare the performance of your hash to the optimal value (1/(1-α)), as shown below.
+You should prepare a brief report comparing and contrasting all four combinations of hash and probe
+function, describing your testing and data collection methods, and comparing the performance of your
+hash table to the theoretical optimal performance. Describe any primary and/or secondary clustering
+you observe and explain how it is affecting the performance of your hash table.
+
+Example plots for collisions:
+Note that instead of one MyHash line, you will have four lines: one for each combination of the two
+hash functions and two probe functions.
+
+[SEE PDF FOR ACTUAL GRAPH EXAMPLE]
+
+Turn in and Grading
+The HashTable class should be implemented as an inline class in the file HashTable.h – it should be
+implemented as a template to allow any type of value to be stored in the table. Similarly, the Record
+class should be implemented as an inline class in a file called Record.h. You do not need to turn in your
+driver/testing code.
+
+Please zip your entire project directory into a single file called Project3_YourLastName.zip.
+Also turn in your report, including your performance graphs, as a single PDF file.
+This project is worth 100 points, distributed as follows:
+[10] The hash table stores Record objects, not just keys
+[5] The insert method adds new items to the hash table when possible
+[5] The insert method rejects duplicate keys
+[5] The insert method rejects insertions when the table if full
+[5] The insert method re-uses space from previously deleted records (i.e. it overwrites tombstones)
+[5] The find method correctly determines when the requested key is in the hash table
+[5] The find method correctly returns false when the requested key is not in the hash table
+[5] The find method correctly fills in the value parameter when the requested key is in the hash table
+[5] The remove method correctly deletes items from the table when they exist
+[5] The remove method does not interfere with subsequent search or insert operations (i.e. tombstones
+are placed correctly)
+
+[5] The << operator is correctly overloaded to print the hash table slot, key, and value of all records in
+the table
+
+[5] The alpha method correctly calculates and returns the load factor of the table
+[5] The hash table avoids excessive primary and secondary clustering
+[10] Code is well organized, well documented, and properly formatted. Variable names are clear, and
+readable.
+
+[20] The report clearly explains the hash function and probe functions used. A collision graph, as
+described above, are included and correct. The report correctly identifies any primary/secondary
+clustering that is occurring in the hash table. The report is readable and clear.
+
+// UNDERSTANDING //
+---------------------------------------------------------------------------------------------------------------
+OVERVIEW
+    Implement a closed HashTable, meaning that an array is used along with probe functions, NOT A LINKED LIST
+    Analyze the time complexity of the insert function using alpha
+        Alpha = the probability that the home function will be occupied P(N/M), where N = the num of records currently in the table,
+                and M = the size of the HashTable. In probability words, a = number of records (N) / sample space (M)
+        Functional analysis will = 1 / (1 - a), or in other words = 1 / (1 - (N/M))
+
+THE HASHTABLE CLASS
+    1st PARAGRAPH
+        Implemented as an array of #DEFINE size MAXHASH objects of class type RECORD
+            Example definition: Record<T>* hashTable = new Record<T>[MAXHASH];
+        A Record contains a non-negative integer key (This tells the program which index to place an input) and a value of TEMPLATE TYPE
+
+    2nd PARAGRAPH (Just set MAXHASH to 1000 and ignore this)
+        When turned in, MAXHASH must be set to 1000 when defined
+        Can use a smaller value when coding
+
+    3rd PARAGRAPH
+        Create a TEMPLATE class called HashTable in a file called HashTable.h
+
+HASHTABLE METHODS
+    BOOL INSERT METHOD (int key, T value, int& collisions)
+        Used to insert a given value into the hashtable at the given KEY if possible
+            - Each time a collision is made, increment a counter. If true should be returned, increment collisions by the counter
+            - Return true if the code made it to the end of the function
+            - Return false if code could not insert value into table
+        Cases to return false:
+            - Duplicates are not allowed: if hashed to a key where value == current value in table, return false
+            - If there is no space remaining in the array, return false, otherwise it will result in an INFINITE LOOP
+
+    BOOL REMOVE METHOD (int key, T& value)
+        If there is a RECORD at the given KEY, set VALUE = to that RECORD, remove that RECORD, RETURN TRUE; else, RETURN FALSE, do nothing w/VALUE
+
+    BOOL FIND METHOD (int key, T& value)
+        IF a RECORD EXISTS at the given KEY, RETURN TRUE and RETURN A COPY OF the RECORD'S value through VALUE; ELSE, RETURN FALSE
+
+    FLOAT ALPHA METHOD ()
+        RETURNS alpha
+            alpha = N/M = num of stored records / MAXHASH = getSize()/MAXHASH
+            return alpha;
+
+    OPERATOR<< OVERLOAD
+        cout << hashtable << endl;
+        PRINT THE TABLE
+            I.E:        KEY | VALUE (Given a hash function of h() = value % 10)
+                        1   | 4441
+                        2   | 4442
+                        3   | 3363
+                        4   | 1354
+                        7   | 5567
+        DO NOT PRINT EMPTY KEYS
+
+
+EXTRA PARAGRAPH OF INFO
+    Supplementary methods may be needed
+        I plan on adding a getSize() method to the HashTable class to make the alpha function simple and easy
+    Constructors for the HASHTABLE and RECORD CLASSES are up to me
+    RECORD CLASS needs GETTERS and SETTERS
+    A TEST.CPP file is provided to test output
+
+IMPORTANT FUNCTIONS
+    HASH AND PROBE FUNCTIONS
+        TWO HASH FUNCTIONS ARE REQUIRED
+
+            HashOne() = key % MAXHASH   // This is the place where the given value will be operated upon (I.e inserted, deleted, found, etc.)
+
+            Second: COME UP WITH ONE
+
+        TWO PROBE FUNCTIONS ARE REQUIRED
+
+            Linear PROBING
+
+            Second: double-hashing or pseudo-random hashing
+                IF double-hashing, make sure that it uses a number that ensures each index will be looked over
+                    (MAXHASH CANNOT BE EVENLY DIVISIBLE BY THE CHOSEN NUMBER)
+                        So for a MAXHASH size of 1000, 99 would work (would it be efficient? Probably not)
+
+ANALYSIS OF HASH
+    Create a PDF document to write down observations and to store screenshots of output
+    Analyze hash based off of sequential integer input and random integer input
+
+    SEQUENTIAL INTEGER INPUT
+        Design a program to feed a hashtable sequential integers (1, 2, 3, 4, 5, 6, ..., 888, 889, 890, ..., 999, 1000)
+        Examine the hashed locations to see if the numbers are being distributed evenly
+        DO THIS FOR EACH COMBINATION OF HASH AND PROBE FUNCTION
+            I.E. -> HASHONE + LINEAR PROBE, HASHONE + SECOND PROBE, HASHTWO + LINEAR PROBE, HASHTWO + SECOND PROBE
+            DO THIS 4 TIMES TOTAL
+
+    RANDOM INTEGER INPUT
+        Design a program to feed a hashtable random integers (222, 4001, 707, 10101, 871, ... MAXHASH-th entry)
+        Examine the hashed locations to see if the numbers are being distributed evenly
+        DO THIS FOR EACH COMBINATION OF HASH AND PROBE FUNCTION
+
+    TESTING PROBES UPON INSERTIONS
+        Test the NUMBER OF PROBES for INSERTIONS as the table becomes more and more full.
+        For example, when alpha (N/M) = .2, find number of probes during insertion
+            Do this for N/M = .1, .2, .3, .4, .5, .6, .7, .8, .9 to get an accurate estimate for the upcoming graph (see below)
+            Do this multiple times and take the MEAN VALUE at each point to get the average number of probes per N/M
+                Example, given multiple runs of the test, the outputs are
+                (N/M) | Num of PROBES
+                .1      4
+                .1      5
+                .1      6
+                .1      3
+                .1      4
+                When designing the graph, the Y value at N/M = .1 would be (4+5+6+3+4)/5 = 22/5 = 4.4. So F(.1) = 4.4, when F is a function of alpha
+                DESCRIBE METHODS FOR DETERMINING MEAN VALUE IN REPORT
+        Use this information to make a graph where the Y AXIS is the number of collisions per the X AXIS (value of alpha)
+        Plot should compare values to the optimal value: 1/(1-a)
+            When testing for NUM OF PROBES at a given N/M, should probably display optimal value as well for comparison
+                (MAKE THIS A FUNCTION)
+
+        REPORT
+            COMPARE AND CONTRAST ALL FOUR COMBINATIONS OF HASH/PROBE FUNCTIONS
+            DESCRIBE TESTING AND DATA COLLECTION METHODS
+            COMPARE PERFORMANCE OF HASH TO THE THEORETICAL OPTIMAL HASH
+            DESCRIBE ANY PRIMARY OR SECONDARY CLUSTERING THAT OCCURS AND HOW IT AFFECTS PERFORMANCE
+
+UNDERSTANDING OF DESIGN
+
+    HASHTABLE
+
+        #DEFINE MAXHASH 1000
+
+        Private fields
+            The hashtable is going to store Records of a template type:
+                Record<template type>* hashTable;
+
+        The user can use these public methods:
+            HASHTABLE() // Empty constructor. Will initialize an empty hash table
+            {
+                hashTable = new Record<template type>[MAXHASH];
+            }
+
+            INSERT
+                A hash will be applied to the given key to store the given value into the resulting index provided by the hash function.
+                Any collisions that occur will be reported back to the user ONLY IF the value can be successfully inserted
+                Duplicates are not allowed, and the function also cannot insert if the table is full (getSize() == MAXHASH)
+                IF GRAVESTONE = 1, set GRAVESTONE = -1 if INSERT IS SUCCESSFUL
+            REMOVE
+                A hash will be applied to the given key, allowing for the user to check if there is a RECORD in that location.
+                If a RECORD is found, set value = to that RECORD, REMOVE THAT RECORD, and return True
+                Else, return false
+                SET GRAVESTONE = 1 upon SUCCESSFUL REMOVAL
+            FIND
+                A hash will be applied to the given key, allowing for the user to check if there is a RECORD in that location.
+                If a RECORD is found, set value = to a COPY of that RECORD, return TRUE
+                Else, return false
+            ALPHA
+                Return getSize()/MAXHASH
+
+        Using "cout << hashTable << endl;" will print:
+            KEY | VALUE (Given a hash function of h() = value % 10)
+            1   | 4441
+            2   | 4442
+            3   | 3363
+            4   | 1354
+            7   | 5567
+
+        The getSize() function needs to be created myself:
+            Iterate through the array and count each place where the getValue() of a Record is initialized (value >= 0)
+
+        HASHONE
+            int hashOne(int key)
+                Takes in arg key and returns key % MAXHASH
+
+        HASHTWO
+            int hashTwo(int key)
+                Undecided methodology
+
+        PROBEONE
+            Linear Probing
+                p(K, i) returns offset. hash(k) + offset = index of array to operate on
+                K = key
+                i = number of tries. i starts at 1. If K is full, move to next index of array to try again (increment i)
+
+        PROBETWO
+            Double-Hashing
+                offset = p(K, i) * HashTwo(K) (If using HashOne)
+                offset = p(K, i) * HashOne(K) (If using HashTwo)
+            Alternative would be to make a third hash function that could be used for both HashOne and HashTwo
+                offset = p(K, i) * HashThree(K) (If using either HashOne or HashTwo)
+
+    RECORD
+        A RECORD is a entry in a HashTable. A RECORD should hold a value of type T* and a gravestone counter of type int.
+
+        private fields:
+            T* value;
+            int gravestone;
+
+        Public methods will consists of getter and setter methods
+            void setValue()
+            void setGrave()
+            T getValue()
+            int getGrave()
+
+        Constructor should initialize value to null and gravestone to -1
+            public Record()
+            {
+                value = nullptr;
+                gravestone = -1;
+            }
+
+    IMPORTANT NOTE
+        GRAVESTONE must be set to 1 after deleting a RECORD from its position in the HashTable. This allows for the probe function to skip over this
+            index when searching over a certain location. GRAVESTONE will only be -1 upon INITIALIZATION or UPON INSERTING TO A LOCATION WHERE
+            GRAVESTONE = 1
+
+
+// CODING THE METHODS //
+
+// The following code is written as if all other methods are coded already. Their contents are abstracted
+// Insert
+// Remove
+// Find
+
+// CODING THE INSERT METHOD
+//      THINGS TO ACCOMPLISH
+//          First thing to check: hashTable must have MAXHASH -1 entries. If num of entries >= MAXHASH -1, return false
+//          Use hash function to get key. Store value into the respective record. Record array[h(k)] = value;
+//              IF array[h(k)] already contains a value -> if array[h(k)].getValue() >= 0 (assuming it can only store positive ints)
+                    // If array[h(k)] == value, return false
+                    // Collision counter++
+//                  Use probe to get offset
+                        offset = probe(k, i); // Do this until probe land on an EMPTY RECORD
+                            // Increment collision counter each time probe must be called again
+                        array[k + offset].setValue(value);
+                        // If gravestone in that location == 1, set it to -1
+                        // Exit loop after array[k+offset] is set to the value
+            // Congrats. Return true
+
+bool INSERT(int key, T value, int& collisions)
+{
+    // Check if insertion should be done. HashTable can only be inserted into if there is more than 1 space available in HashTable
+    // If num_of_entries >= MAXHASH - 1, RETURN FALSE
+    if (getSize() >= MAXHASH - 1)
+    {
+        return false;
+    }
+
+    // Use hash function to get key. Store value into the respective record. Array[hashF(k)] <-- value;
+    // Do this ^^^ if array[h(k)] does not currently contain a value
+    if (hashtable[hashOne(key)].getValue() < 0)
+    {
+        // It is okay to set value here if there was no value here before
+        hashtable[hashOne(key)].setValue(value);
+
+        // If for some reason the gravestone was 1. Reset the gravestone to -1
+        hashtable[hashOne(key)].setGrave(-1);
+
+        // Value has been set. Return true
+        return true;
+    }
+    else // Index h(k) contains a Record already. Use probing to find an appropriate offset to add to the key.
+    {
+        // First check if that value in index h(k) is the same as the value to insert. If so, return false
+        if (hashTable[hashOne(key).getValue()] == value)
+        {
+            return false;
+        }
+
+        // The values were not the same, so increment the collisions counter
+        int cc = 1; // This is the first time it's used, so if it was 0 before and incremented, it is initially 1
+
+        // Probe to get the offset
+        // Something is in index h(k) when that index contains a value that is not the preset value: -1
+        // Use the probe function until a value of -1 is found
+        bool isTrue = true; // Continue loop until this sentinel declares that the probe found the correct value
+        int i = 0;          // Number of attempts
+        int offset = 0;     // Offset provided by probe function
+        while (isTrue)
+        {
+            // Get the offset from the probe
+            offset = linearProbing(key, result);
+
+            // Break out if the offset of the probe function != -1
+            if (offset != -1)
+            {
+                isTrue = false;
+            }
+            else // There was a collision this time. Increment cc by 1
+            {
+                cc++;
+            }
+        }
+
+        // The location of h(k) + offset is where the value can be inserted
+        hashTable[hashOne(key) + offset].setValue(value);
+
+        // If gravestone == 1 in that location, setGrave to -1
+        if (hashTable[hashOne(key) + offset].getGrave() == 1)
+        {
+            hashTable[hashOne(key) + offset].setGrave(-1);
+        }
+    }
+
+    // It made it to the end
+    // Return TRUE
+    return true;
+}
+
+// ACTUAL CODE //------------------------------------------------------------------------------------------------------------------------//
+template<class T> bool HashTable<T>::insert(int key, T value, int& collisions)
+{
+    // Check if insertion should be done. HashTable can only be inserted into if there is more than 1 space available in HashTable
+    // If num_of_entries >= MAXHASH - 1, RETURN FALSE
+    if (getSize() >= MAXHASH - 1)
+    {
+        return false;
+    }
+
+    // Use hash function to get key. Store value into the respective record. Array[hashF(k)] <-- value;
+    // Do this ^^^ if array[h(k)] does not currently contain a value
+    if (hashTable[hashOne(key)].getValue() < 0)
+    {
+        // It is okay to set value here if there was no value here before
+        hashTable[hashOne(key)].setValue(value);
+
+        // If for some reason the gravestone was 1. Reset the gravestone to -1
+        hashTable[hashOne(key)].setGrave(-1);
+
+        // Value has been set. Return true
+        return true;
+    }
+    else // Index h(k) contains a Record already. Use probing to find an appropriate offset to add to the key.
+    {
+        // First check if that value in index h(k) is the same as the value to insert. If so, return false
+        if (hashTable[hashOne(key)].getValue() == value)
+        {
+            return false;
+        }
+
+        // The values were not the same, so increment the collisions counter
+        int cc = 1; // This is the first time it's used, so if it was 0 before and incremented, it is initially 1
+
+        // Probe to get the offset
+        // Something is in index h(k) when that index contains a value that is not the preset value: -1
+        // Use the probe function until a value of -1 is found
+        bool isTrue = true; // Continue loop until this sentinel declares that the probe found the correct value
+        int i = 0;          // Number of attempts
+        int offset = 0;     // Offset provided by probe function
+        while (isTrue)
+        {
+            // Get the offset from the probe
+            offset = linearProbe(key, i);
+
+            // Break out if the offset of the probe function != -1
+            if (offset != -1)
+            {
+                isTrue = false;
+            }
+            else // There was a collision this time. Increment cc by 1. Increment attempts by 1. Try again
+            {
+                cc++;
+                i++;
+            }
+        }
+
+        // The location of h(k) + offset is where the value can be inserted
+        hashTable[hashOne(key) + offset].setValue(value);
+
+        // If gravestone == 1 in that location, setGrave to -1
+        if (hashTable[hashOne(key) + offset].getGrave() == 1)
+        {
+            hashTable[hashOne(key) + offset].setGrave(-1);
+        }
+    }
+
+    // It made it to the end
+    // Return TRUE
+    return true;
+}
+//--------------------------------------------------------------------------------------------------------------------------
+
+
+---------------------------------------------------------
+CODING
+THE
+REMOVE
+METHOD
+---------------------------------------------------------
+GOING OVER THE LOGIC
+
+    GOALS
+
+            REMOVE
+                A hash will be applied to the given key, allowing for the user to check if there is a RECORD in that location.
+                If a RECORD is found, set value = to that RECORD, REMOVE THAT RECORD, and return True
+                Else, return false
+                SET GRAVESTONE = 1 upon SUCCESSFUL REMOVAL
+
+HOW TO CODE
+    Use hash function to find array[h(k)]. If getValue() >= 0, there IS A RECONRD IN THAT LOCATION
+        if array[h(k)].getValue >= 0
+            value = value of record
+            remove record
+            Set grave of array[h(k)] to 1
+            return true
+        ELSE
+            return false
+
+BOOL REMOVE(int key, T& value)
+{
+    // If value in index hashF(key) contains a value (I.e. if value >= 0), there is a record there. Remove it
+    if (hashTable[hashOne(key)].getValue() >= 0)
+    {
+        // Set value = the value of the record
+        value = hashTable[hashOne(key)].getValue();
+
+        // Remove the record (In the case of my code, this means setting the value to a negative number. Set to -1
+        hashTable[hashOne(key)].setValue(-1);
+
+        // Set grave of index hashF(key) to 1
+        hashTable[hashOne(key)].setGrave(1);
+
+        // It is now okay to return true;
+        return true;
+    }
+
+    // If it made it here, index hashF(key) contained no value to remove. Return FALSE
+    return false;
+}
+
+// CODE WAS PERFECT
+
+
+
+------------------------------------------------------------------------------------
+CODING THE FIND METHOD
+------------------------------------------------------------------------------------
+
+UNDERSTANDING THE FIND METHOD
+
+            FIND
+                A hash will be applied to the given key, allowing for the user to check if there is a RECORD in that location.
+                If a RECORD is found, set value = to a COPY of that RECORD, return TRUE
+                Else, return false
+
+HOW TO CODE THE FIND METHOD
+
+    // If value in index hashF(key) contains a value (I.e. if value >= 0), there is a record there.
+    if (hashTable[hashOne(key)].getValue() >= 0)
+    {
+        // When there is a record, copy getValue() into value
+        value = hashTable[hashOne(key)].getValue();
+
+        // Return true
+        return true;
+    }
+
+    // If it made it here, there was no record in that location. Return FALSE
+    return false;
+
+
+HAHAHAHAHAHAHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
+YOU THOUGHT THE VALUE WOULD BE INTSSSS?????
+
+TOO BAD
+
+THEY'RE STRINGS BOI
+
+TRY AGAIN
+
+FIND OUT HOW TO BUILD THE RECORD CONSTRUCTOR
+
+The hashtable will create an array of size MAXHASH upon instantiation, but none of its indexes will contain Records upon instantiation
+Make it so that when INSERT occurs, a new RECORD is instantiated and added to the array
+When adding the RECORD, it CANNOT BE DONE THROUGH POINTERS
+    Creating a RECORD in a method creates the method on the stack frame.
+    When the method ends, that RECORD goes out of scope and the pointer becomes useless
+    The array must copy the values of the
+
+    Do I know what I'm saying?
+
+    If the array of Records already contains MAXHASH records then the values can be copied into the records that already exist in the array
+    This is only if a way to instantiate a Record without a value can be done...
+
+    Nah. I'm dumb.
+    This line creates all 1000 Records upon instantiation
+        Record<T>* hashList = new Record<T>[MAXHASH]();
+    SO in INSERT, I need to create a Record,
+        Record<T> record(key, value);
+    Then I need to use that key to find which respective record in hashList that I should copy those values into.
+
+------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------
+Fresh Start
+
+    A Record is one entry in a hashtable
+        A Record contains a key and a value
+        The key of a record is used by the hash function to insert the Record into the hashtable
+        Upon receiving a record's key, the hash function will return the home of the Record
+            If the home is full, the probe function is called to provide an offset
+            The location of that Record is thus the home (h(k)) + offset
+
+    INSERT METHOD
+        CHECK IF CAN BE INSERTED INTO: IF GETSIZE < MAXHASH -1: ELSE, GETSIZE >= MAXHASH -1, do not insert
+        Create new Record(key, value)
+        See if newRecord already exists in hashTable
+            IF YES:
+                return false;
+            If not:
+                See if home position is empty
+                    IF YES:
+                        hashTable[h(k)] = newRecord
+                        check if gravestone = 1. If so, set it to -1
+                        return true;
+                    IF NO:
+                        Probe function must be called
+
+                        collisions counter is set to 1
+                        isTrue = true;
+                        probe attempts = 0
+
+                        LOOP(isTrue):
+                            IF probe function returned an offset:
+                                hashTable[h(k) + offset] = newRecord
+                                check if gravestone = 1. If so, set it to -1
+                                isTrue = false
+                            IF NOT:
+                                cc++;
+                                attempts++;
+        return true if it made it here
+
+
+INSERT METHOD CODE ---------------------------------------------------------------------------------------------------------------------------
+    // CHECK IF CAN BE INSERTED INTO: IF GETSIZE < MAXHASH -1: ELSE, GETSIZE >= MAXHASH -1, do not insert
+    if (getSize() >= MAXHASH - 1)
+    {
+        return false;
+    }
+
+    // Create new Record(key, value)
+    Record<T> record(key, value);
+
+    // See if newRecord already exists in hashTable
+    for (int i = 0; i < MAXHASH; i++)
+    {
+        // Only check if this Record's values have been initialized
+        if (hashTable[i].initTrue())
+        {
+            // If they are both the same, return false
+            if (hashTable[i].getKey() == record.getKey() && hashTable[i].getValue() == record.getValue())
+            {
+                return false;
+            }
+        }
+    }
+
+    // If not:
+    // See if home position is empty (If it is ! initialized)
+    if (!hashTable[hashOne(key)].initTrue())
+    {
+        // IF YES:
+        // hashTable[h(k)] = newRecord (using overriden = operator)
+        hashTable[hashOne(key)] = record;
+
+        // check if gravestone = 1. If so, set it to -1
+        if (hashTable[hashOne(key)].getGrave() == 1)
+        {
+            hashTable[hashOne(key)].setGrave(-1);
+        }
+
+        // return true;
+        return true;
+    }
+
+    // IF NO:
+    // Probe function must be called
+
+    // collisions counter is set to 1
+    int cc = 1;
+
+    // isTrue = true;
+    bool isTrue = true;
+
+    // probe attempts = 0
+    int i = 0;
+
+    // Initialize the offset
+    int offset = 0;
+
+    // LOOP(isTrue):
+    while (isTrue)
+    {
+        // Get an offset from probe function
+        offset = linearProbe(key, i);
+
+        // IF probe function returned an offset:
+        if (offset != -1)
+        {
+            // hashTable[h(k) + offset] = newRecord
+            hashTable[hashOne(key) + offset] = record;
+
+            // check if gravestone = 1. If so, set it to -1
+            if (hashTable[hashOne(key) + offset].getGrave() == 1)
+            {
+                hashTable[hashOne(key) + offset].setGrave(-1);
+            }
+
+            // isTrue = false
+            isTrue = false;
+        }
+        else // IF NOT:
+        {
+            // cc++;
+            cc++;
+
+            // attempts++;
+            i++;
+        }
+    }
+
+    // return true if it made it here
+    return true;
+
+////////////////////////////////////////////END OF INSERT METHOD///////////////////////////////////////////////////////////////////////
+
+ACTUAL CODE
+
+template<class T> bool HashTable<T>::insert(int key, T value, int& collisions)
+{
+    // CHECK IF CAN BE INSERTED INTO: IF GETSIZE < MAXHASH -1: ELSE, GETSIZE >= MAXHASH -1, do not insert
+    if (getSize() >= MAXHASH - 1)
+    {
+        return false;
+    }
+
+    // Create new Record(key, value)
+    Record<T> record(key, value);
+
+    // See if newRecord already exists in hashTable
+    for (int i = 0; i < MAXHASH; i++)
+    {
+        // Only check if this Record's values have been initialized
+        if (hashTable[i].initTrue())
+        {
+            // If they are both the same, return false
+            if (hashTable[i].getKey() == record.getKey() && hashTable[i].getValue() == record.getValue())
+            {
+                return false;
+            }
+        }
+    }
+
+    // If not:
+    // See if home position is empty (If it is ! initialized)
+    if (!hashTable[hashOne(key)].initTrue())
+    {
+        // IF YES:
+        // hashTable[h(k)] = newRecord (using overriden = operator)
+        hashTable[hashOne(key)] = record;
+
+        // check if gravestone = 1. If so, set it to -1
+        if (hashTable[hashOne(key)].getGrave() == 1)
+        {
+            hashTable[hashOne(key)].setGrave(-1);
+        }
+
+        // return true;
+        return true;
+    }
+
+    // IF NO:
+    // Probe function must be called
+
+    // collisions counter is set to 0
+    int cc = 0;
+
+    // isTrue = true;
+    bool isTrue = true;
+
+    // probe attempts = 0
+    int i = 0;
+
+    // initialize the offset
+    int offset = 0;
+
+    // LOOP(isTrue):
+    while (isTrue)
+    {
+        // Get an offset from probe function
+        offset = linearProbe(key, i);
+
+        // IF probe function returned an offset:
+        if (offset != -1)
+        {
+            // hashTable[h(k) + offset] = newRecord
+            hashTable[hashOne(key) + offset] = record;
+
+            // check if gravestone = 1. If so, set it to -1
+            if (hashTable[hashOne(key) + offset].getGrave() == 1)
+            {
+                hashTable[hashOne(key) + offset].setGrave(-1);
+            }
+
+            // isTrue = false
+            isTrue = false;
+        }
+        else // IF NOT:
+        {
+            // cc++;
+            cc++;
+
+            // attempts++;
+            i++;
+        }
+    }
+
+    // True is going to be returned. First set collisions equals to the collisions counter
+    collisions = cc;
+
+    // return true if it made it here
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+            FIND
+                A hash will be applied to the given key, allowing for the user to check if there is a RECORD in that location.
+                If a RECORD is found, set value = to a COPY of that RECORD, return TRUE
+                Else, return false
+                
+    // Check if there is a record in that location (by checking if the record is initialized)            
+    if (hashTable[hashOne(key)].initTrue())
+    {
+        // Copy the record's value into value
+        value = hashTable[hashOne(key)].getValue();
+        return true;
+    }
+    
+    // If it made it here, there was no record: return false
+    return false;
+    
+    
+ANALYSIS OF HASH
+    Create a PDF document to write down observations and to store screenshots of output
+    Analyze hash based off of sequential integer input and random integer input
+
+    SEQUENTIAL INTEGER INPUT
+        Design a program to feed a hashtable sequential integers (1, 2, 3, 4, 5, 6, ..., 888, 889, 890, ..., 999, 1000)
+        Examine the hashed locations to see if the numbers are being distributed evenly
+        DO THIS FOR EACH COMBINATION OF HASH AND PROBE FUNCTION
+            I.E. -> HASHONE + LINEAR PROBE, HASHONE + SECOND PROBE, HASHTWO + LINEAR PROBE, HASHTWO + SECOND PROBE
+            DO THIS 4 TIMES TOTAL
+
+    RANDOM INTEGER INPUT
+        Design a program to feed a hashtable random integers (222, 4001, 707, 10101, 871, ... MAXHASH-th entry)
+        Examine the hashed locations to see if the numbers are being distributed evenly
+        DO THIS FOR EACH COMBINATION OF HASH AND PROBE FUNCTION
+
+    TESTING PROBES UPON INSERTIONS
+        Test the NUMBER OF PROBES for INSERTIONS as the table becomes more and more full.
+        For example, when alpha (N/M) = .2, find number of probes during insertion
+            Do this for N/M = .1, .2, .3, .4, .5, .6, .7, .8, .9 to get an accurate estimate for the upcoming graph (see below)
+            Do this multiple times and take the MEAN VALUE at each point to get the average number of probes per N/M
+                Example, given multiple runs of the test, the outputs are
+                (N/M) | Num of PROBES
+                .1      4
+                .1      5
+                .1      6
+                .1      3
+                .1      4
+                When designing the graph, the Y value at N/M = .1 would be (4+5+6+3+4)/5 = 22/5 = 4.4. So F(.1) = 4.4, when F is a function of alpha
+                DESCRIBE METHODS FOR DETERMINING MEAN VALUE IN REPORT
+        Use this information to make a graph where the Y AXIS is the number of collisions per the X AXIS (value of alpha)
+        Plot should compare values to the optimal value: 1/(1-a)
+            When testing for NUM OF PROBES at a given N/M, should probably display optimal value as well for comparison
+                (MAKE THIS A FUNCTION)
+
+        REPORT
+            COMPARE AND CONTRAST ALL FOUR COMBINATIONS OF HASH/PROBE FUNCTIONS
+            DESCRIBE TESTING AND DATA COLLECTION METHODS
+            COMPARE PERFORMANCE OF HASH TO THE THEORETICAL OPTIMAL HASH
+            DESCRIBE ANY PRIMARY OR SECONDARY CLUSTERING THAT OCCURS AND HOW IT AFFECTS PERFORMANCE
+        
+        [20] The report clearly explains the hash function and probe functions used. A collision graph, as
+            described above, are included and correct. The report correctly identifies any primary/secondary
+            clustering that is occurring in the hash table. The report is readable and clear.

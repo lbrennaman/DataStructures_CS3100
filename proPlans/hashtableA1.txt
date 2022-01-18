@@ -1,0 +1,196 @@
+// HashTable.cpp file containing methods of the HashTable.h class
+// Created by Logan Brennaman on 10/18/21
+
+#define MAXHASH 1000
+
+#include <iostream>
+#include "HashTable.h"
+
+using namespace std;
+
+// Constructor to initialize the hashTable with Records. Will be size of #define MAXHASH
+template<class T> HashTable<T>::HashTable()
+{
+    hashTable = new Record<T>[MAXHASH]();
+}
+
+/*
+ *   INSERT
+ *       A hash will be applied to the given key to store the given value into the resulting index provided by the hash function.
+ *       Any collisions that occur will be reported back to the user ONLY IF the value can be successfully inserted
+ *       Duplicates are not allowed, and the function also cannot insert if the table is full (getSize() == MAXHASH)
+ *       IF GRAVESTONE = 1, set GRAVESTONE = -1 if INSERT IS SUCCESSFUL
+ */
+template<class T> bool HashTable<T>::insert(int key, T value, int& collisions)
+{
+    // If hashTable already contains value, return false
+    
+    // Initialize a collisions counter that is only returned if true is returned
+    int colCount = 0;
+
+    // Get the index for the given key
+    int index = hashOne(key);
+
+    // If there is no value in the current index, insert the value into the current index
+    if (hashTable[index].getValue() == -1)
+    {
+        hashTable[index].setValue(value);
+    }
+    else // If there is a value in the current index
+    {
+        // Increment the collisions counter by 1
+        colCount++;
+
+        // Increment index depending on the probe.
+
+        // Create a bool for the upcoming loop
+        bool isTrue = true;
+        int attemptCount = 1; // The attempt count for the upcoming probes
+
+        // LinearProbe
+        while (isTrue)
+        {
+            // If linearProbe returned a proper offset, change the index and exit the loop
+            if (linearProbe(key, attemptCount) != -1)
+            {
+                index += linearProbe(key, attemptCount);
+                isTrue = false;
+            }
+            else
+            {
+                // Increment the number of attempts after a fail
+                attemptCount++;
+                colCount++; // This also means a collision occurred
+            }
+
+            // If the attemptCount has reached 1000, the item cannot be added
+            if (attemptCount == MAXHASH)
+            {
+                return false;
+            }
+        }
+    }
+
+    // If it made it here, that means that it's okay to insert the value into the given index
+    hashTable[index].setValue(value);
+    collisions = colCount; // Return the number of collisions too
+
+    return true;
+}
+
+/*
+ *   REMOVE
+ *       A hash will be applied to the given key, allowing for the user to check if there is a RECORD in that location.
+ *       If a RECORD is found, set value = to that RECORD, REMOVE THAT RECORD, and return True
+ *       Else, return false
+ *       SET GRAVESTONE = 1 upon SUCCESSFUL REMOVAL
+ */
+template<class T> bool HashTable<T>::remove(int key, T& value)
+{
+    return 0;
+}
+
+/*
+ *   FIND
+ *       A hash will be applied to the given key, allowing for the user to check if there is a RECORD in that location.
+ *       If a RECORD is found, set value = to a COPY of that RECORD, return TRUE
+ *       Else, return false
+ */
+template<class T> bool HashTable<T>::find(int key, T& value)
+{
+    return 0;
+}
+
+// alpha - returns getSize() / MAXHASH
+template<class T> float HashTable<T>::alpha()
+{
+    return ((float)getSize() / (float)MAXHASH);
+}
+
+// getSize() - counts all initialized Records in the HashTable and returns that count
+template<class T> int HashTable<T>::getSize()
+{
+    // Start a count
+    int count = 0;
+
+    // Iterate through the entire array
+    for (int i = 0; i < MAXHASH; i++)
+    {
+        // If the Record at the current index, i, has a value, increment count by 1
+        if (hashTable[i].getValue() != -1)
+        {
+            count++;
+        }
+    }
+
+    // Return how many Records were counted
+    return count;
+}
+
+// hashOne: returns key % MAXHASH
+template<class T> int HashTable<T>::hashOne(int key)
+{
+    return key % MAXHASH;
+}
+
+// hashTwo: returns (key + getSize()) % MAXHASH
+template<class T> int HashTable<T>::hashTwo(int key)
+{
+    return (key + getSize()) % MAXHASH;
+}
+
+// hashThree: returns (key / getSize()) % MAXHASH
+// Used by doubleHashProbe()
+template<class T> int HashTable<T>::hashThree(int key)
+{
+    return (key / getSize()) % MAXHASH;
+}
+
+// LinearProbe
+// Views Record stored in current hashTable[hash(key) + attempts], if that Record's value is empty
+// Return attempts, else -1 to signify that the key was not empty and that the code must progess
+template<class T> int HashTable<T>::linearProbe(int key, int attempts)
+{
+    if (hashTable[hashOne(key) + attempts].getValue() == -1)
+    {
+        return attempts;
+    }
+    return -1;
+}
+
+// Double-hash probe: calculates a relatively prime number to use as a probe using hashThree
+// Views Record stored in hashTable[hash(key) + offset]. If that Record's value is empty,
+// Returns offset, else -1 to signify that the key was not empy and that the code must progress
+template<class T> int HashTable<T>::doubleHashProbe(int key, int attempts)
+{
+    // Get the offset by multiplying the number of attempts by hashThree
+    int offset = attempts * hashThree(key);
+
+    // Make sure that the offset is relatively prime
+    while (MAXHASH % offset == 0)
+    {
+        offset++; // increment offset until MAXHEAP is not evenly divisible by offset
+    }
+
+    // View hashTable[hash(key) + offset]
+    if (hashTable[hashOne(key) + offset].getValue() == nullptr)
+    {
+        return offset;
+    }
+    return -1;
+
+}
+
+// Overriding the << operator to print all of the records held in the HashTable
+// Writing "cout << *hashtable" will print the hashtable
+template<class U> ostream& operator<<(ostream& os, const HashTable<U>& hash)
+{
+    os << "HASHTABLE\n____________\n";
+    for (int i = 0; i < MAXHASH; i++) {
+        if (hash.hashTable[i].getValue() != -1)
+        {
+            os << i << " | " << hash.hashTable[i].getValue();
+        }
+    }
+    return os;
+}

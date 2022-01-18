@@ -1,0 +1,278 @@
+Provided code: Entry.h, SparseMatrix.h, NoSuchEntry.h, test.cpp
+
+Goal of the project
+    Create the data type: SparseMatrix in c++ using the provided code. Make SparseMatrix.cpp
+
+What is a SparseMatrix?
+    Given a two dimensional array with many empty spaces, a sparsematrix takes the data in the nonempty spaces and stores that data (along with its row
+        and column) in a list.
+
+Actual PDF INSTRUCTIONS:
+------------------------------------------------------------------------------------------------------------------------------------------------------
+CS 3100 – Data Structures and Algorithms
+Project #1 – Sparse Matrix
+Learning Objectives
+    • Apply basic object-oriented programming concepts in C++
+    • Construct and use C++ objects making effective use of references and pointers
+    • Implement an abstract data type conforming to specific design specifications
+
+Overview
+
+    Your task for this assignment is to implement a “Sparse Matrix” data type. A matrix is a two
+dimensional array. The term sparse means that most of the slots in the array are empty. A novice
+programmer might store this type of data structure by simply creating a two-dimensional array of the
+appropriate data type, but this would waste a lot of space since most of the memory allocated would
+not be holding any value due to the sparsity of the matrix. A much better implementation is to keep a
+list (either as an array or a linked list) of the non-empty slot.
+
+    Entries can be represented as objects of an Entry class, that contains fields for the row and column of this entry in the sparse matrix,
+as well as its value. [SEE Entry.h for explanations]
+
+    Since a data structure generally needs to be able to store values of any data type, the Entry class
+is a template. You have been provided with the code for this class on Pilot.
+
+    You have given a SparseMatrix.h file with method prototypes for the sparse matrix (this is on
+Pilot). Your task is to implement the methods according to the following specifications. You may add
+any supplementary methods that you would like, but the only ones that are absolutely required are
+those already present in the file. [SEE SparseMatrix.h for method explanations]
+
+    You have been provided with a file called test.cpp, and the expected
+output (output.txt) to partially check you work. Please keep in mind that we will use a different test file
+when grading, so you might want to develop your own additional tests to make sure your
+implementation is robust.
+
+    You can implement the sparse matrix using an array, a linked list, or any other data structure that you
+feel is appropriate. Because this is a data structures class, you need to design and implement the
+underlying data structure yourself. You may not, for example, use C++ standard template library vectors
+(or any other existing code) for the underlying data structure. Failure to follow this requirement will
+result in a zero on the project, so please contact me if you have any questions.
+
+The Sparse Matrix
+The sparse matrix data type will be implemented as follows:
+    • Default constructor – creates a new sparse matrix that contains no entries
+    • Copy constructor – creates an independent copy of the other sparse matrix
+    • Assignment operator overload – creates an independent copy of the other sparse matrix
+        without leaking any memory
+    • Destructor – destroys the sparse matrix without leaking any memory
+    • void add(int row, int col, T value) – adds the value to the specified row and column of the sparse
+        matrix, overwriting an existing entry if one is already present at that location (without leaking
+        any memory); there should be no limit on the number of entries that can be added, within the
+        bounds of the available RAM
+    • void remove(int row, int col) – clears the entry at the indicated row and column without leaking
+        any memory; if there is no entry at the specified row and column, throw a NoSuchEntry
+        exception (you have been provided with this class in the file NoSuchEntry.h on Pilot).
+    • T getValue(int row, int col) – returns the value of the entry at the indicated row and column;
+        throws a NoSuchEntry exception if there is no entry there.
+    • int getNumRows() – returns the number of rows in the sparse matrix (i.e. the row of the largest
+        entry in the matrix plus one)
+    • int getNumCols() – returns the number of columns in the sparse matrix (i.e. the column of the
+        largest entry in the matrix plus one)
+    • int getNumEntries() – returns the number of non-empty elements in the sparse matrix
+    • << operator overload – displays the sparse matrix as a two-dimensional array, with empty slots
+        indicated by a hyphen
+
+Turn in and Grading
+    Please implement your class in-line in the SparseMatrix.h file provided (do not make a separate .cpp
+file). Turn in any source code required to build and run your implementation. This likely includes
+SparseMatrix.h, Entry.h and NoSuchEntry.h. Do not turn in test.cpp. You may turn in your files either
+individually or zipped into a single file.
+Your project will be graded according to the following rubric. Each item is worth 10 points, for a total of
+100. Projects that do not compile will receive a zero. Projects that use classes from the standard
+template library (STL) or any other existing library, such as the vector or list classes, will also receive a
+zero.
+
+    PROGRAM MUST:
+    ---------------------------------------------------------------------------------------------------
+
+    You can create a sparse matrix of any data types and insert values into the matrix at new locations.
+
+    Inserting a value into a sparse matrix where one is already present overwrites the old value and does
+not introduce a memory leak.
+
+    The capacity of the sparse matrix is limited only by the amount of available RAM (note, there is no test
+for this in the driver program provided).
+
+///////////////////////////////////////// EXCEPTIONS ////////////////////////////////////////////////////
+    You can remove an item from a specified row and column within the sparse matrix without introducing a
+memory leak; trying to remove an item from an empty location throws a NoSuchEntry exception. --> (Addressed in remove method)
+
+    You can retrieve the value (via getValue) from a specified row and column within the sparse matrix;
+trying to get a value from an empty location throws a NoSuchEntry exception.  --> (made own test case and proved it to work)
+///////////////////////////////////////// EXCEPTIONS ////////////////////////////////////////////////////
+
+    The getNumRows, getNumCols and getNumEntries methods return accurate values, including for an
+empty sparse matrix.
+
+    You can print sparse matrices to cout in the format specified in the requirements above using <<
+
+    A sparse matrix can be copied (using a copy constructor) resulting in a new, independent matrix with the
+same contents as the original matrix.
+
+    A sparse matrix can be assigned (using =), resulting in a new, independent matrix with the same
+contents as the original matrix. This works for both initial assignments and re-assignments and does not
+introduce any memory leaks.
+
+    Your code follows standard coding conventions, including consistent indentation and meaningful
+identifier names. Any tricky parts of the implementation are clearly commented. Your code does not
+print out any extraneous debugging information when it is run.
+-----------------------------------------------------------------------------------------------------------------------------------------------------
+
+SPARSEMATRIX.h CODE
+
+// Logan Brennaman 9/10/21
+
+#include <exception>
+#include <iostream>
+
+#include "Entry.h"
+#include "NoSuchEntry.h"
+
+using namespace std;
+
+//-----------------------------------------------------------------------------------------------------------------------------------//
+/* THE SPARSEMATRIX CLASS
+ * ----------------------
+ *
+ * This class implements the data type known as a SparseMatrix:
+ * Given a two dimensional array with many empty spaces, a sparsematrix takes the data in the nonempty spaces and stores that data
+ *     (along with its row and column) in a list.
+ */
+//-----------------------------------------------------------------------------------------------------------------------------------//
+
+template <class T> class SparseMatrix
+{
+
+    private:
+        Entry<T>** entries;
+        int capacity;
+        int size;
+
+    public:
+        // Default constructor – creates a new sparse matrix that contains no entries
+        SparseMatrix()
+        {
+
+        }
+
+        // Copy constructor – creates an independent copy of the other sparse matrix
+        SparseMatrix(const SparseMatrix& other)
+        {
+
+        }
+
+        // Assignment operator overload – creates an independent copy of the other sparse matrix without leaking any memory
+        SparseMatrix& operator=(const SparseMatrix& other)
+        {
+
+        }
+
+        // Destructor – destroys the sparse matrix without leaking any memory
+        ~SparseMatrix()
+        {
+
+        }
+
+        //---------------------------------------------------------------------------------------------------//
+        /* void add(int row, int col, T value) – adds the value to the specified row and column of the sparse
+         * matrix, overwriting an existing entry if one is already present at that location (without leaking
+         * any memory); there should be no limit on the number of entries that can be added, within the
+         * bounds of the available RAM
+         *///------------------------------------------------------------------------------------------------//
+        void add(int row, int col, T value)
+        {
+
+        }
+
+        //---------------------------------------------------------------------------------------------------//
+        /* void remove(int row, int col) – clears the entry at the indicated row and column without leaking
+         * any memory; if there is no entry at the specified row and column, throw a NoSuchEntry
+         * exception (you have been provided with this class in the file NoSuchEntry.h on Pilot).
+         *///------------------------------------------------------------------------------------------------//
+        void remove(int row, int col)
+        {
+
+        }
+
+        //---------------------------------------------------------------------------------------------------//
+        /* T getValue(int row, int col) – returns the value of the entry at the indicated row and column;
+         * throws a NoSuchEntry exception if there is no entry there.
+         *///------------------------------------------------------------------------------------------------//
+        T getValue(int row, int col) const
+        {
+
+        }
+
+        //---------------------------------------------------------------------------------------------------//
+        /* int getNumRows() – returns the number of rows in the sparse matrix (i.e. the row of the largest
+         * entry in the matrix plus one)
+         *///------------------------------------------------------------------------------------------------//
+        int getNumEntries() const
+        {
+
+        }
+
+        //---------------------------------------------------------------------------------------------------//
+        /* int getNumCols() – returns the number of columns in the sparse matrix (i.e. the column of the
+         * largest entry in the matrix plus one)
+         *///------------------------------------------------------------------------------------------------//
+        int getNumRows() const
+        {
+
+        }
+
+        // int getNumEntries() – returns the number of non-empty elements in the sparse matrix
+        int getNumCols() const
+        {
+
+        }
+
+        // See method declaration for explanation
+        template <class U> friend ostream& operator<<(ostream& os, const SparseMatrix<U>& sm);
+};
+
+//---------------------------------------------------------------------------------------------------//
+/* << operator overload – displays the sparse matrix as a two-dimensional array, with empty slots
+ * indicated by a hyphen
+ *///------------------------------------------------------------------------------------------------//
+template <class U> ostream& operator<<(ostream& os, const SparseMatrix<U>& sm)
+{
+
+}
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+NoSuchEntry.h CODE
+
+// Logan Brennaman 9/10/21
+
+#include <exception>
+
+using namespace std;
+
+//-------------------------------------------------------------------------------------------------------//
+/*
+ * The NO_SUCH_ENTRY CLASS
+ * -----------------------
+ *
+ * Throws an exception in these cases:
+ *
+ *  You can remove an item from a specified row and column within the sparse matrix without introducing a
+ *  memory leak; trying to remove an item from an empty location throws a NoSuchEntry exception.
+ *
+ *  You can retrieve the value (via getValue) from a specified row and column within the sparse matrix;
+ *  trying to get a value from an empty location throws a NoSuchEntry exception.
+ */
+ //-------------------------------------------------------------------------------------------------------//
+
+class NoSuchEntry : public exception
+{
+
+    public:
+        virtual const char* what() const throw()
+        {
+            return "No entry exists at this location";
+        }
+
+};
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
