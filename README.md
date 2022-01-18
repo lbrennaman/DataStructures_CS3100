@@ -31,7 +31,7 @@ This repository contains all of the c++ files I created during my data structure
   this conclusion and was given no way to explain my thinking to the professor.)
   
 /p2 is my favorite project from my data structures class as it was the ONLY PROJECT IN WHICH WE DIDN'T RECEIVE STARTER CODE. The goal of this project (see /proPlans/p2plan.txt 
-  for exact instructions) was to simulate a file tree using a binary tree. I finished this project in about 8 hours after the project was released and the grade I received on 
+  for exact instructions) was to simulate a file tree using a general tree. I finished this project in about 8 hours after the project was released and the grade I received on 
   it was -- I believe -- 105%. This project was fun and I don't think I had any problems with the directions on this one...
   
  /p3 was to build a HashTable, and it certainly created some confusion. We were taught that a hashTable is a data structure much like an array, each address being a key.
